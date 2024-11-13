@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabet Bingo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bingo-board {
+            display: grid;
+            grid-template-columns: repeat(5, 30mm);
+            grid-template-rows: repeat(5, 30mm);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+        .bingo-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #333;
+            font-size: 100px;
+            font-weight: bold;
+            width: 30mm;
+            height: 30mm;
+            box-sizing: border-box; /* Ensures border is inside the cell size */
+        }
+        .controls {
+            margin: 20px;
+        }
+        #bingoContainer {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        /* Print styling to match screen layout exactly */
+        @media print {
+            body {
+                display: block;
+                margin-top: 100mm;
+            }
+            .bingo-board {
+                display: grid;
+                grid-template-columns: repeat(5, 30mm);
+                grid-template-rows: repeat(5, 30mm);
+                gap: 2px;
+                margin: 0 auto;
+                width: 150mm;
+                height: 150mm;
+                page-break-after: always;
+            }
+            .bingo-cell {
+                width: 30mm;
+                height: 30mm;
+                font-size: 100px;
+                border: 1px solid #333;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <label for="setCount">빙고판 세트 수:</label>
+    <select id="setCount">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">3</option>
+        <option value="5">3</option>
+        <option value="6">3</option>
+    </select>
+
+    <label for="alphabetType">알파벳 구성:</label>
+    <select id="alphabetType">
+        <option value="uppercase">대문자 only</option>
+        <option value="lowercase">소문자 only</option>
+        <option value="mixed">대소문자 mixed</option>
+    </select>
+
+    <button onclick="generateBingoBoards()">빙고판 생성</button>
+    <button onclick="printBingoBoards()">출력</button>
+</div>
+
+<div id="bingoContainer"></div>
+
+<script>
+    function generateRandomUniqueLetters(type) {
+        let letters;
+        if (type === 'uppercase') {
+            letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        } else if (type === 'lowercase') {
+            letters = 'abcdefghijklmnopqrstuvwxyz';
+        } else {
+            letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        }
+        
+        const usedLetters = new Set();
+        const uniqueLetters = [];
+        
+        while (uniqueLetters.length < 25) {
+            const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+            
+            // Check for both uppercase and lowercase to avoid duplicates
+            if (!usedLetters.has(randomLetter.toLowerCase()) && !usedLetters.has(randomLetter.toUpperCase())) {
+                uniqueLetters.push(randomLetter);
+                usedLetters.add(randomLetter);
+            }
+        }
+        return uniqueLetters;
+    }
+
+    function createBingoBoard(alphabetType) {
+        const board = document.createElement('div');
+        board.classList.add('bingo-board');
+        const letters = generateRandomUniqueLetters(alphabetType);
+        
+        for (let i = 0; i < 25; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('bingo-cell');
+            cell.textContent = letters[i];
+            board.appendChild(cell);
+        }
+        return board;
+    }
+
+    function generateBingoBoards() {
+        const setCount = document.getElementById('setCount').value;
+        const alphabetType = document.getElementById('alphabetType').value;
+        const container = document.getElementById('bingoContainer');
+        container.innerHTML = '';
+        
+        for (let i = 0; i < setCount; i++) {
+            const board = createBingoBoard(alphabetType);
+            container.appendChild(board);
+        }
+    }
+
+    function printBingoBoards() {
+        const boards = document.getElementById('bingoContainer').children;
+        const printWindow = window.open('', '', 'height=842,width=595'); // A4 size dimensions in points
+        printWindow.document.write('<html><head><title>Bingo Boards</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('@media print { body { display: block; } .bingo-board { display: grid; grid-template-columns: repeat(5, 30mm); grid-template-rows: repeat(5, 30mm); gap: 2px; margin: 0 auto; width: 150mm; height: 150mm; page-break-after: always; } .bingo-cell { width: 30mm; height: 30mm; font-size: 100px; display: flex; justify-content: center; align-items: center; border: 1px solid #333; box-sizing: border-box; } }');
+        printWindow.document.write('</style></head><body>');
+        
+        for (let i = 0; i < boards.length; i++) {
+            printWindow.document.write('<div class="bingo-board">' + boards[i].innerHTML + '</div>');
+        }
+
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+</script>
+
+</body>
+</html>
